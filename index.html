@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unbin · binary → text · any language</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #0b0f1a;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 1rem;
+    }
+    .card {
+      background: #111827;
+      border-radius: 2rem;
+      box-shadow: 0 25px 50px -12px #000000cc, inset 0 1px 1px #ffffff0d;
+      width: 100%;
+      max-width: 840px;
+      padding: 2rem 1.8rem;
+      border: 1px solid #1f2a3f;
+    }
+    @media (max-width: 480px) {
+      .card {
+        padding: 1.5rem 1rem;
+        border-radius: 1.5rem;
+      }
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: #e0e7ff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+      border-bottom: 1px solid #1e2a44;
+      padding-bottom: 1rem;
+    }
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+    .lock-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+    .privacy-badge {
+      background: #0f1a2b;
+      border-radius: 100px;
+      padding: 0.35rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: #9bb9e0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid #2d3f5e;
+      margin-left: auto;
+    }
+    .privacy-badge::before {
+      content: "🔒";
+      font-size: 0.9rem;
+    }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #8ba3cc;
+      margin-bottom: 0.6rem;
+    }
+    .input-area {
+      position: relative;
+      margin-bottom: 1.8rem;
+    }
+    textarea, .text-output {
+      width: 100%;
+      background: #0d1422;
+      border: 1px solid #253653;
+      border-radius: 1.2rem;
+      padding: 1.2rem;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: #eef5ff;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+      resize: vertical;
+      min-height: 140px;
+      box-shadow: inset 0 2px 6px #00000080;
+    }
+    textarea:focus, .text-output:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px #3b82f640, inset 0 2px 6px #00000060;
+    }
+    textarea::placeholder {
+      color: #4a6188;
+      font-style: italic;
+      font-size: 1rem;
+    }
+    .text-output {
+      background: #09101c;
+      border-color: #1e314b;
+      color: #b7e1ff;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      white-space: pre-wrap;
+      font-size: 1.1rem;
+      margin-top: 0.25rem;
+      min-height: 120px;
+    }
+    .text-output:empty::before {
+      content: "decoded text will appear here …";
+      color: #3f5579;
+      font-style: italic;
+      font-family: system-ui, sans-serif;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+    .stats {
+      font-size: 0.85rem;
+      color: #6d8ab5;
+      background: #0a1221;
+      padding: 0.35rem 1rem;
+      border-radius: 100px;
+      border: 1px solid #202f48;
+      letter-spacing: 0.02em;
+    }
+    .stats.error {
+      color: #fca5a5;
+      background: #2a0f0f;
+      border-color: #5e2d2d;
+    }
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    .btn {
+      background: #1e2a44;
+      border: none;
+      border-radius: 2rem;
+      padding: 0.7rem 1.4rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #d2e2ff;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid #2f405f;
+      box-shadow: 0 4px 6px -2px #00000060;
+      letter-spacing: 0.01em;
+    }
+    .btn:hover {
+      background: #283a5a;
+      border-color: #4361a0;
+      color: #ffffff;
+      transform: scale(0.98);
+    }
+    .btn:active {
+      transform: scale(0.96);
+      background: #1d2c48;
+    }
+    .btn-clear {
+      background: transparent;
+      border-color: #334155;
+      color: #a0b8dc;
+    }
+    .btn-clear:hover {
+      background: #1f2a3e;
+      border-color: #4b5e80;
+    }
+    .btn-copy {
+      background: #162b3a;
+      border-color: #2f5368;
+      color: #b3e4ff;
+    }
+    .btn-copy:hover {
+      background: #1d3c50;
+      border-color: #3e7a9c;
+    }
+    .btn-sample {
+      background: #1a2436;
+      border-color: #2e405c;
+      color: #a8c4e8;
+    }
+    .btn-sample:hover {
+      background: #243249;
+      border-color: #3e5a80;
+    }
+    .bottom-note {
+      font-size: 0.75rem;
+      color: #3a5075;
+      text-align: center;
+      margin-top: 1.8rem;
+      padding-top: 0.8rem;
+      border-top: 1px dashed #1f2e46;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .bottom-note span {
+      opacity: 0.8;
+    }
+    @media (max-width: 600px) {
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .button-group {
+        justify-content: stretch;
+      }
+      .btn {
+        flex: 1;
+        justify-content: center;
+      }
+      .stats {
+        text-align: center;
+      }
+      h1 {
+        flex-wrap: wrap;
+      }
+      .privacy-badge {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>
+      <span class="lock-icon">🔓</span>
+      Unbin
+      <span class="privacy-badge">no data leaves</span>
+    </h1>
+
+    <div class="input-area">
+      <label for="binaryInput">Binary input · 8-bit groups</label>
+      <textarea id="binaryInput" placeholder="Paste binary here, e.g. 01001000 01101001 … (spaces optional)" spellcheck="false" autocomplete="off"></textarea>
+    </div>
+
+    <div style="margin-bottom: 0.6rem;">
+      <label for="textOutput">Decoded text (UTF‑8, any language)</label>
+      <div id="textOutput" class="text-output" tabindex="0" aria-label="decoded text"></div>
+    </div>
+
+    <div class="controls">
+      <div class="stats" id="stats">0 bytes · waiting</div>
+      <div class="button-group">
+        <button class="btn btn-sample" id="sampleBtn" title="Load a sample">✨ Sample</button>
+        <button class="btn btn-copy" id="copyBtn" title="Copy decoded text">📋 Copy</button>
+        <button class="btn btn-clear" id="clearBtn" title="Clear all">✕ Clear</button>
+      </div>
+    </div>
+
+    <div class="bottom-note">
+      <span>⚡ fully offline · client‑side only</span>
+      <span>🌍 unicode aware</span>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const binaryInput = document.getElementById('binaryInput');
+      const textOutput = document.getElementById('textOutput');
+      const statsDiv = document.getElementById('stats');
+      const copyBtn = document.getElementById('copyBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const sampleBtn = document.getElementById('sampleBtn');
+
+      function parseBinaryToBytes(input) {
+        if (!input) return { bytes: [], error: null };
+
+        const stripped = input.replace(/[\s,_\-|.]/g, '');
+
+        if (stripped.length === 0) return { bytes: [], error: null };
+
+        if (!/^[01]+$/.test(stripped)) {
+          const bad = stripped.match(/[^01]/);
+          return { bytes: [], error: `invalid character "${bad[0]}" — only 0 and 1 allowed` };
+        }
+
+        if (stripped.length % 8 !== 0) {
+          return { bytes: [], error: `bit count (${stripped.length}) not a multiple of 8` };
+        }
+
+        const bytes = [];
+        for (let i = 0; i < stripped.length; i += 8) {
+          bytes.push(parseInt(stripped.slice(i, i + 8), 2));
+        }
+        return { bytes, error: null };
+      }
+
+      function bytesToText(bytes) {
+        if (!bytes.length) return '';
+        try {
+          const decoder = new TextDecoder('utf-8', { fatal: true });
+          return decoder.decode(new Uint8Array(bytes));
+        } catch (e) {
+          const decoder = new TextDecoder('utf-8', { fatal: false });
+          return decoder.decode(new Uint8Array(bytes));
+        }
+      }
+
+      function updateOutput() {
+        const raw = binaryInput.value;
+        const { bytes, error } = parseBinaryToBytes(raw);
+
+        if (error) {
+          textOutput.textContent = '';
+          statsDiv.textContent = `⚠ ${error}`;
+          statsDiv.classList.add('error');
+          return;
+        }
+
+        statsDiv.classList.remove('error');
+
+        if (!bytes.length) {
+          textOutput.textContent = '';
+          statsDiv.textContent = '0 bytes · waiting';
+          return;
+        }
+
+        const decoded = bytesToText(bytes);
+        textOutput.textContent = decoded;
+        statsDiv.textContent = `${bytes.length} byte${bytes.length !== 1 ? 's' : ''} · decoded`;
+      }
+
+      async function copyTextToClipboard() {
+        const text = textOutput.textContent;
+        if (!text) {
+          copyBtn.textContent = '📋 Nothing';
+          setTimeout(() => { copyBtn.innerHTML = '📋 Copy'; }, 1200);
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = '✅ Copied!';
+          setTimeout(() => { copyBtn.innerHTML = '📋 Copy'; }, 1800);
+        } catch (err) {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          copyBtn.textContent = '✅ Copied!';
+          setTimeout(() => { copyBtn.innerHTML = '📋 Copy'; }, 1800);
+        }
+      }
+
+      function clearAll() {
+        binaryInput.value = '';
+        textOutput.textContent = '';
+        statsDiv.textContent = '0 bytes · waiting';
+        statsDiv.classList.remove('error');
+        binaryInput.focus();
+        copyBtn.innerHTML = '📋 Copy';
+      }
+
+      function loadSample() {
+        const sampleText = 'Hello, 世界! 🌍 Привет';
+        const encoder = new TextEncoder();
+        const bytes = encoder.encode(sampleText);
+        const binaryStr = Array.from(bytes)
+          .map(b => b.toString(2).padStart(8, '0'))
+          .join(' ');
+        binaryInput.value = binaryStr;
+        updateOutput();
+        binaryInput.focus();
+      }
+
+      binaryInput.addEventListener('input', updateOutput);
+      binaryInput.addEventListener('compositionend', updateOutput);
+      copyBtn.addEventListener('click', copyTextToClipboard);
+      clearBtn.addEventListener('click', clearAll);
+      sampleBtn.addEventListener('click', loadSample);
+
+      document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+          e.preventDefault();
+          copyTextToClipboard();
+        }
+      });
+
+      updateOutput();
+      binaryInput.focus();
+    })();
+  </script>
+</body>
+</html>
